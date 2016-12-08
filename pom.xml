@@ -177,7 +177,20 @@
       <version>4.7</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>com.shreya</groupId>
+      <artifactId>sh-user-service</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+
   </dependencies>
+  <pluginRepositories>
+    <pluginRepository>
+      <id>dtrott</id>
+      <url>http://maven.davidtrott.com/repository</url>
+    </pluginRepository>
+  </pluginRepositories>
+
   <build>
     <plugins>
       <plugin>
