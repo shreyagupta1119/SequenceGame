@@ -1,11 +1,13 @@
-package com.shreya;
+package com.shreya.game;
 
 import lombok.Data;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
  * Created by shreya on 29/11/16.
  */
 @Data
+@Document(collection="card")
 public class Card {
     private char suit;
     private int value;
@@ -44,8 +46,10 @@ public class Card {
             case 10:  str= "10";
             case 11:  str= "Jack";
             case 12:  str= "Queen";
-            default:  str= "King";
+            case 13:  str= "King";
+            default:  str="joker";
         }
         return str +" of "+suit;
     }
+
 }

@@ -1,5 +1,14 @@
 package com.shreya;
 
+import com.shreya.game.Card;
+import com.shreya.game.Deck;
+import com.shreya.game.GameService;
+import com.shreya.game.GameboardAndDeck;
+import com.shreya.player.PlayerData;
+import com.shreya.player.PlayerService;
+import com.shreya.user.LoginRequest;
+import com.shreya.user.UserData;
+import com.shreya.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,98 +29,213 @@ public class RestController {
     public static final String APPLICATION_XML = "application/xml";
     public static final String APPLICATION_HTML = "text/html";
 
-    @Autowired
-    private PlayerRepository playerRepository;
+    @Autowired private UserService userService;
+    @Autowired private PlayerService playerService;
+    @Autowired private GameService gameService;
 
 
     @RequestMapping(value ="/", method= RequestMethod.GET, produces=APPLICATION_JSON)
     public @ResponseBody String welcomePage(){
-        return "Welcome to Sequence Game";
+        return "Welcome to GameboardAndDeck game";
     }
 
-    @RequestMapping(value="/players", method=RequestMethod.GET,produces=APPLICATION_JSON)
-    public @ResponseBody List<Player> getAllPlayers(){
-        List<Player> allPlayers=playerRepository.getAllPlayers();
-        return allPlayers;
+    @RequestMapping(value="/users", method=RequestMethod.GET,produces=APPLICATION_JSON)
+    public @ResponseBody List<UserData> getAllUsers(){
+        List<UserData> allUsers=userService.getAllUsers();
+        return allUsers;
     }
 
-    @RequestMapping(value="/getPlayerByContactNumber/{contactNumber}",method=RequestMethod.GET,headers="Accept=application/json")
-    public @ResponseBody Player getPlayerByContactNumber(@PathVariable String contactNumber){
-        Player player1=playerRepository.getPlayerByContactNumber(contactNumber);
-        return player1;
+    @RequestMapping(value="/getUserByContactNumber/{contactNumber}",method=RequestMethod.GET,headers="Accept=application/json")
+    public @ResponseBody UserData getUserByContactNumber(@PathVariable String contactNumber){
+        UserData user1=userService.getUserByContactNumber(contactNumber);
+        return user1;
     }
 
-    @RequestMapping(value="/getPlayerByName/{name}",method=RequestMethod.GET,headers="Accept=application/json")
-    public @ResponseBody List<Player> getPlayerByName(@PathVariable String name){
-        return playerRepository.getPlayerByName(name);
+    @RequestMapping(value="/getUserByName/{name}",method=RequestMethod.GET,headers="Accept=application/json")
+    public @ResponseBody List<UserData> getUserByName(@PathVariable String name){
+        return userService.getUserByName(name);
     }
 
-    @RequestMapping(value="/player",method=RequestMethod.POST,consumes={APPLICATION_JSON, APPLICATION_XML},
+    @RequestMapping(value="/getOnlineUser",method=RequestMethod.GET,headers="Accept=application/json")
+    public @ResponseBody List<UserData> getOnlineUsers(){
+        return userService.getOnlineUsers();
+    }
+
+    @RequestMapping(value="/getUserFriendsList",method=RequestMethod.GET,headers="Accept=application/json")
+    public @ResponseBody List<UserData> getUserFriendsList(@RequestParam("number") String number){
+        return userService.getUserFriendsList(number);
+
+    }
+
+    @RequestMapping(value="/user",method=RequestMethod.POST,consumes={APPLICATION_JSON, APPLICATION_XML},
             produces={APPLICATION_JSON, APPLICATION_XML})
-    public @ResponseBody RestResponse addPlayer(@RequestBody Player player1){
+    public @ResponseBody RestResponse addUser(@RequestBody UserData user1){
                 RestResponse response;
-                System.out.println(player1.toString());
 
-
-        if (!StringUtils.isEmpty(player1.getName()) &&!StringUtils.isEmpty((CharSequence) player1.getPassword())
-                && (player1.getContactNumber().length())==10) {
-            playerRepository.addPlayer(player1);
-            response = new RestResponse(true, "Successfully added player: " + player1.getContactNumber());
+        if (!StringUtils.isEmpty(user1.getName()) &&!StringUtils.isEmpty((CharSequence) user1.getPassword())
+                && (user1.getContactNumber().length())==10) {
+            userService.addUser(user1);
+            response = new RestResponse(true, "Successfully added user: " + user1.getContactNumber());
         } else
 
             response = new RestResponse(false, "invalid input");
                 return response;
     }
 
-    @RequestMapping(value="/player",method = RequestMethod.PUT,consumes={APPLICATION_JSON, APPLICATION_XML},
+    @RequestMapping(value="/user",method = RequestMethod.PUT,consumes={APPLICATION_JSON, APPLICATION_XML},
             produces={APPLICATION_JSON, APPLICATION_XML})
-    public @ResponseBody RestResponse updateBookByContactNumber(@RequestParam("number") String number,
-                                                         @RequestBody Player player1) {
+    public @ResponseBody RestResponse updateUserByContactNumber(@RequestParam("number") String number,
+                                                         @RequestBody UserData user1) {
         RestResponse response;
 
-        Player myPlayer = playerRepository.updatePlayer(number, player1);
+        UserData myUser = userService.updateUser(number, user1);
 
-        if (myPlayer != null) {
-             response = new RestResponse(true, "Successfully updated player: " + myPlayer.toString());
+        if (myUser != null) {
+             response = new RestResponse(true, "Successfully updated user: " + myUser.toString());
         } else {
-             response = new RestResponse(false, "Failed to update Player: with contact number : " + number);
+             response = new RestResponse(false, "Failed to update user with contact number : " + number);
         }
 
         return response;
     }
 
-    @RequestMapping(value="/player",method = RequestMethod.DELETE,produces={APPLICATION_JSON, APPLICATION_XML})
-    public @ResponseBody RestResponse deleteBookByContactNumber(@RequestParam("number") String number) {
+    @RequestMapping(value="/user",method = RequestMethod.DELETE,produces={APPLICATION_JSON, APPLICATION_XML})
+    public @ResponseBody RestResponse deleteUserByContactNumber(@RequestParam("number") String number) {
         RestResponse response;
 
-        Player myPlayer= playerRepository.deletePlayer(number);
+        UserData myUser= userService.deleteUser(number);
 
-        if (myPlayer != null) {
-           response = new RestResponse(true, "Successfully deleted Player: " + myPlayer.toString());
+        if (myUser != null) {
+           response = new RestResponse(true, "Successfully deleted user: " + myUser.toString());
         } else {
-           response = new RestResponse(false, "Failed to delete Player with contactNumber : " + number);
+           response = new RestResponse(false, "Failed to delete user with contactNumber : " + number);
         }
 
         return response;
     }
 
-    @RequestMapping(value="/player/login" , method= RequestMethod.POST, consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
-    public @ResponseBody String login(@RequestBody LoginRequest subplayer){
-        String str=logincheck(subplayer.getContactNumber());
+    @RequestMapping(value="/User/login" , method= RequestMethod.POST, consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
+    public @ResponseBody String login(@RequestBody LoginRequest subUser){
+        String str=logincheck(subUser.getContactNumber());
 
-        Player player1= playerRepository.getPlayerByContactNumber(subplayer.getContactNumber());
-        if((player1.getPassword()).equals(subplayer.getPassword()))
-            return str+"successful login";
+        UserData user1= userService.getUserByContactNumber(subUser.getContactNumber());
+        if((user1.getPassword()).equals(subUser.getPassword())) {
+            user1.setOnline(true);
+            return str + "successful login";
+        }
         else
             return str+"invalid login";
     }
 
-    @RequestMapping(value="/player/login-check",method=RequestMethod.GET )
+    @RequestMapping(value="/user/login-check",method=RequestMethod.GET )
     public @ResponseBody String logincheck(@RequestParam("Contact") String contactNumber){
-        Player player1=playerRepository.getPlayerByContactNumber(contactNumber);
-        if(player1==null)
+        UserData user1=userService.getUserByContactNumber(contactNumber);
+        if(user1==null)
             return "mobile number is not registered, ";
         else
             return "mobile number is correct, ";
+    }
+
+    @RequestMapping(value="/players", method= RequestMethod.GET,produces=APPLICATION_JSON)
+    public @ResponseBody List<PlayerData> getAllPlayers(){
+        List<PlayerData> allPlayers=playerService.getAllPlayers();
+        return allPlayers;
+    }
+
+    @RequestMapping(value="/getPlayersByContactNumber/{contactNumber}",method=RequestMethod.GET,headers="Accept=application/json")
+    public @ResponseBody List<PlayerData> getPlayersByContactNumber(@PathVariable String contactNumber){
+        List<PlayerData> players=playerService.getPlayersByContactNumber(contactNumber);
+        return players;
+    }
+
+    @RequestMapping(value="/getPlayerByMatchId",method = RequestMethod.GET,headers = "Accept=application/json")
+    public @ResponseBody List<PlayerData> getPlayersByMatchId(@RequestParam("match_id") int match_id){
+        return playerService.getPlayersByMatchId(match_id);
+    }
+
+    @RequestMapping(value="/newgame", method=RequestMethod.GET)
+    public @ResponseBody String newGame(){
+        return "options are:" +
+                " 1)Random Opponent" +
+                " 2)GameboardAndDeck Friend" +
+                " 3)find opponent by name" ;
+    }
+
+    @RequestMapping(value="/newgame/findRandomOpponent", method = RequestMethod.GET)
+    public @ResponseBody RestResponse findRandomOpponent(@RequestParam ("number") String number){
+        RestResponse response;
+        UserData user1= gameService.findRandomOpponent(number);
+        if(user1==null)
+            response=new RestResponse(false,"cannot find any opponent");
+        else
+            response=new RestResponse(true,"Random opponent is "+ user1.getContactNumber());
+
+        return response;
+    }
+
+    @RequestMapping(value="/newgame/sequenceFriend",method = RequestMethod.GET)
+    public @ResponseBody RestResponse sequenceFriend(@RequestParam ("number") String number){
+        RestResponse response;
+        UserData user1=gameService.sequenceFriend(number);
+        if(user1==null)
+            response=new RestResponse(false,"cannot find any friend");
+        else
+            response=new RestResponse(true,"Found GameboardAndDeck friend "+ user1.getContactNumber());
+
+        return response;
+    }
+
+    @RequestMapping(value="/newgame/findOpponentByName",method = RequestMethod.GET)
+    public @ResponseBody RestResponse findOpponentByName(@RequestParam("name") String name){
+        RestResponse response;
+        List<UserData> users=gameService.findOpponentByName(name);
+        if(users==null)
+            response=new RestResponse(false,"no player exists with name: "+name );
+        else
+            response=new RestResponse(true, "found players: "+users.toString());
+
+        return response;
+    }
+
+/*
+    @RequestMapping(value="/newgame/createRequest",method=RequestMethod.POST,consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
+    public @ResponseBody String createRequest(@RequestParam ("number") String number){
+        return "player "+number+" wants to match with you";
+    }
+
+    @RequestMapping(value="/newgame/receiveRequest",method = RequestMethod.GET)
+    public @ResponseBody String getRequest(@RequestParam ("number") String number){
+
+    }
+*/
+    @RequestMapping(value="/showDeck", method=RequestMethod.GET,produces=APPLICATION_JSON)
+    public @ResponseBody List<Card> showDeck(@RequestParam ("match_id") int match_id){
+        return gameService.showDeck(match_id);
+    }
+
+    @RequestMapping(value="/match",method=RequestMethod.GET,consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
+    public @ResponseBody String match(@RequestParam("user1") UserData user1,@RequestParam("user2") UserData user2){
+        gameService.match(user1,user2);
+        return "Game started";
+    }
+
+    @RequestMapping(value="/makeMove",method = RequestMethod.POST,consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
+    public @ResponseBody String makeMove(@RequestParam("player") PlayerData player,@RequestParam("card") Card c,@RequestParam ("match_id") int match_id,@RequestParam ("cardposition")int pos) {
+        return gameService.putCardOnGameBoard(c,player,pos);
+    }
+
+    @RequestMapping(value="/deadcardReplacement",method=RequestMethod.GET)
+    public @ResponseBody String deadCardReplacement(@RequestParam("player") PlayerData player,@RequestParam("card") Card card){
+        return gameService.deadCardReplacement(player,card);
+    }
+
+    @RequestMapping(value="/whoseTurnToPlayNext",method = RequestMethod.GET,consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
+    public @ResponseBody PlayerData whoseTurnNext(@RequestParam("match_id") int match_id){
+        return gameService.whoseTurnToPlayNext(match_id);
+    }
+
+    @RequestMapping(value="/TocheckWhoWonGame",method = RequestMethod.GET,consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
+    public @ResponseBody PlayerData gameWinner(@RequestParam("match_id") int match_id){
+        return gameService.gameWinner(match_id);
     }
 }
