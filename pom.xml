@@ -184,14 +184,8 @@
     </dependency>
 
   </dependencies>
-  <pluginRepositories>
-    <pluginRepository>
-      <id>dtrott</id>
-      <url>http://maven.davidtrott.com/repository</url>
-    </pluginRepository>
-  </pluginRepositories>
 
-  <build>
+    <build>
     <plugins>
       <plugin>
         <artifactId>maven-eclipse-plugin</artifactId>
