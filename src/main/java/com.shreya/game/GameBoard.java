@@ -12,7 +12,6 @@ import java.util.Map;
  * Created by shreya on 29/11/16.
  */
 @Data
-@Service
 public class GameBoard {
     private HashMap<Integer, Card> gameboard;
     private HashMap<Integer, Character> fill;

@@ -68,7 +68,7 @@ public class GameService {
 
     }
 
-    public List<UserData> findOpponentByName(String name){
+    public List<UserData> findOpponentByName(String name,String number){
         List<UserData> users1=userService.getUserByName(name);
         List<UserData> users2=userService.getOnlineUsers();
         List<UserData> users=new ArrayList<UserData>();
@@ -76,6 +76,7 @@ public class GameService {
             if(users2.contains(user))
                 users.add(user);
         }
+        users.remove(userService.getUserByContactNumber(number));
         return users;
     }
 

@@ -73,10 +73,12 @@ public class RestController {
                 RestResponse response;
 
         if (!StringUtils.isEmpty(user1.getName()) &&!StringUtils.isEmpty((CharSequence) user1.getPassword())
-                && (user1.getContactNumber().length())==10) {
+                && (user1.getContactNumber().length())==10 && StringUtils.isEmpty(user1.getFriends())){
+
             userService.addUser(user1);
             response = new RestResponse(true, "Successfully added user: " + user1.getContactNumber());
         } else
+
 
             response = new RestResponse(false, "invalid input");
                 return response;
@@ -87,14 +89,20 @@ public class RestController {
     public @ResponseBody RestResponse updateUserByContactNumber(@RequestParam("number") String number,
                                                          @RequestBody UserData user1) {
         RestResponse response;
-
-        UserData myUser = userService.updateUser(number, user1);
-
+        UserData myUser=null;
+        if((StringUtils.isEmpty(user1.getName() )|| (!StringUtils.isEmpty(user1.getName()) && user1.getName().length()>0))
+             &&(StringUtils.isEmpty(user1.getPassword() )|| (!StringUtils.isEmpty(user1.getPassword()) && user1.getPassword().length()>0))&&
+        (StringUtils.isEmpty(user1.getOnline() )|| (!StringUtils.isEmpty(user1.getOnline()) && (user1.getOnline()==true || user1.getOnline()==false)))
+              && (StringUtils.isEmpty(user1.getFriends())|| (!StringUtils.isEmpty(user1.getFriends()) && userService.checkFriends(user1.getFriends(),number)))
+        && (StringUtils.isEmpty(user1.getContactNumber() )|| (!StringUtils.isEmpty(user1.getContactNumber()) && user1.getContactNumber().equals(number)))) {
+            user1.setFriends(userService.setFriends(user1.getFriends(),number));
+            myUser = userService.updateUser(number, user1);
+        }
         if (myUser != null) {
              response = new RestResponse(true, "Successfully updated user: " + myUser.toString());
         } else {
              response = new RestResponse(false, "Failed to update user with contact number : " + number);
-        }
+                 }
 
         return response;
     }
@@ -114,13 +122,14 @@ public class RestController {
         return response;
     }
 
-    @RequestMapping(value="/User/login" , method= RequestMethod.POST, consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
+    @RequestMapping(value="/user/login" , method= RequestMethod.POST, consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
     public @ResponseBody String login(@RequestBody LoginRequest subUser){
         String str=logincheck(subUser.getContactNumber());
 
         UserData user1= userService.getUserByContactNumber(subUser.getContactNumber());
         if((user1.getPassword()).equals(subUser.getPassword())) {
             user1.setOnline(true);
+            userService.updateUser(subUser.getContactNumber(),user1);
             return str + "successful login";
         }
         else
@@ -154,7 +163,8 @@ public class RestController {
     }
 
     @RequestMapping(value="/newgame", method=RequestMethod.GET)
-    public @ResponseBody String newGame(){
+    public @ResponseBody String newGame(@RequestParam("number") String number){
+        userService.getUserByContactNumber(number).setOnline(true);
         return "options are:" +
                 " 1)Random Opponent" +
                 " 2)GameboardAndDeck Friend" +
@@ -180,15 +190,15 @@ public class RestController {
         if(user1==null)
             response=new RestResponse(false,"cannot find any friend");
         else
-            response=new RestResponse(true,"Found GameboardAndDeck friend "+ user1.getContactNumber());
+            response=new RestResponse(true,"Found friend "+ user1.getContactNumber());
 
         return response;
     }
 
     @RequestMapping(value="/newgame/findOpponentByName",method = RequestMethod.GET)
-    public @ResponseBody RestResponse findOpponentByName(@RequestParam("name") String name){
+    public @ResponseBody RestResponse findOpponentByName(@RequestParam("name") String name,@RequestParam ("number") String number){
         RestResponse response;
-        List<UserData> users=gameService.findOpponentByName(name);
+        List<UserData> users=gameService.findOpponentByName(name,number);
         if(users==null)
             response=new RestResponse(false,"no player exists with name: "+name );
         else
