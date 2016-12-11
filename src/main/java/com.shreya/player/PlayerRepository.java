@@ -1,9 +1,12 @@
 package com.shreya.player;
 
+import com.shreya.variables.SequenceVariables;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -41,14 +44,25 @@ public class PlayerRepository {
     }
 
     public void updatePlayer(PlayerData player){
-        PlayerData player1=mongoTemplate.findOne(Query.query(Criteria.where("match_id").is(player.getMatch_id()).and("contactNumber").is(player.getContactNumber())),PlayerData.class);
-        player1.setColor(player.getColor());
-        player1.setHandCards(player.getHandCards());
-        mongoTemplate.save(player1);
+        Query query=new Query();
+        query.addCriteria(Criteria.where("match_id").is(player.getMatch_id()).and("contactNumber").is(player.getContactNumber()));
+        Update u=new Update().set("color",player.getColor()).set("handCards",player.getHandCards());
+        PlayerData player1=mongoTemplate.findAndModify(query,u,new FindAndModifyOptions().returnNew(true),PlayerData.class);
     }
 
     public List<PlayerData> getPlayersByMatchId(int match_id){
         return mongoTemplate.find(Query.query(Criteria.where("match_id").is(match_id)),PlayerData.class);
+    }
+
+    public List<PlayerData> deletePlayerByMatchId(int match_id){
+        List<PlayerData> players=mongoTemplate.find(Query.query(Criteria.where("match_id").is(match_id)), PlayerData.class);
+        for(PlayerData player:players)
+            mongoTemplate.remove(player);
+        return players;
+    }
+
+    public PlayerData getPlayerByMatchIdAndContactNumber(int match_id,String number){
+        return mongoTemplate.findOne(Query.query(Criteria.where("match_id").is(match_id).and("contactNumber").is(number)),PlayerData.class);
     }
 }
 

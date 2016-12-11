@@ -1,6 +1,7 @@
 package com.shreya.variables;
 
-import com.shreya.game.GameboardAndDeck;
+import com.shreya.game.Deck;
+import com.shreya.game.GameBoard;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -16,29 +17,29 @@ import java.util.Comparator;
 public class SequenceVariables {
     @Id
     private int match_id;
-    private GameboardAndDeck gad;
+    private GameBoard gb;
+    private Deck deck;
     private ArrayList<Integer> lockedpos;
     private int counter;
 
 
+    public SequenceVariables(){
+    }
+
     public SequenceVariables(int match_id){
         this.match_id=match_id;
-        this.gad=new GameboardAndDeck();
-        lockedpos=null;
+        this.gb=new GameBoard();
+        this.deck=new Deck();
+        lockedpos=new ArrayList<Integer>();
         counter=0;
      }
 
-    public SequenceVariables(int match_id, GameboardAndDeck gad,ArrayList<Integer> lockedpos,int counter){
+    public SequenceVariables(int match_id, GameBoard gb,Deck deck,ArrayList<Integer> lockedpos,int counter){
         this.match_id=match_id;
-        this.gad=gad;
+        this.gb=gb;
+        this.deck=deck;
         this.lockedpos=lockedpos;
         this.counter=counter;
-    }
-
-    @Override
-    public String toString(){
-        return "SequenceVariables: [match_id: "+match_id+", GameboardandDeck: "+ gad.toString()+", lockedpos: "+lockedpos+
-                ", counter: "+counter+" ]";
     }
 
     public static Comparator<SequenceVariables> match_idComparator = new Comparator<SequenceVariables>() {

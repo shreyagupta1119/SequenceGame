@@ -19,8 +19,8 @@ public class SequenceVariablesRepository {
     private MongoTemplate mongoTemplate;
 
     public List<Card> showDeck(int match_id){
-        SequenceVariables obj= mongoTemplate.findOne(Query.query(Criteria.where("match_id").is(match_id)),SequenceVariables.class);
-        return obj.getGad().getDeck().getCards();
+        SequenceVariables obj= mongoTemplate.findOne(Query.query(Criteria.where("_id").is(match_id)),SequenceVariables.class);
+        return obj.getDeck().getCards();
     }
 
     public SequenceVariables createSequenceVariables(int match_id){
@@ -32,8 +32,9 @@ public class SequenceVariablesRepository {
     }
 
     public void updateSequenceVariables(SequenceVariables sv){
-        SequenceVariables sv1=mongoTemplate.findOne(Query.query(Criteria.where("match_id").is(sv.getMatch_id())),SequenceVariables.class);
-        sv1.setGad(sv.getGad());
+        SequenceVariables sv1=mongoTemplate.findOne(Query.query(Criteria.where("_id").is(sv.getMatch_id())),SequenceVariables.class);
+        sv1.setGb(sv.getGb());
+        sv1.setDeck(sv.getDeck());
         sv1.setCounter(sv.getCounter());
         sv1.setLockedpos(sv.getLockedpos());
         mongoTemplate.save(sv1);
@@ -44,6 +45,6 @@ public class SequenceVariablesRepository {
     }
 
     public SequenceVariables getSequenceVariableByMatchId(int match_id){
-        return mongoTemplate.findOne(Query.query(Criteria.where("match_id").is(match_id)),SequenceVariables.class);
+        return mongoTemplate.findOne(Query.query(Criteria.where("_id").is(match_id)),SequenceVariables.class);
     }
 }

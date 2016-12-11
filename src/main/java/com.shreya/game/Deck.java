@@ -44,7 +44,7 @@ public class Deck {
 
      @Override
      public String toString(){
-         String str=null;
+         String str="";
          for(Card c:cards)
              str+=c.toString();
          return str;

@@ -3,7 +3,9 @@ package com.shreya.player;
 import java.util.ArrayList;
 
 import com.shreya.game.Card;
+import com.sun.javafx.beans.IDProperty;
 import lombok.Data;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.CompoundIndexes;
@@ -15,14 +17,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
  */
 @Data
 @Document(collection="player")
-@CompoundIndexes({
-@CompoundIndex(name = "number_matchid", def = "{'contactNumber': 1, 'match_id': 1}",unique = true)})
+@CompoundIndexes(value={
+@CompoundIndex(name = "number_matchid", def = "{'match_id': 1,'contactNumber': 1}",unique = true)})
 
 public class PlayerData {
     @Indexed
-    private String contactNumber;
-    @Indexed
     private int match_id;
+    @Indexed
+    private String contactNumber;
     private ArrayList<Card> handCards;
     private char color;
 
@@ -31,9 +33,9 @@ public class PlayerData {
 
     public PlayerData(String contactNumber,int match_id,char color){
         this.contactNumber=contactNumber;
-        this.handCards=null;
         this.match_id=match_id;
         this.color=color;
+        handCards=new ArrayList<Card>();
     }
 
     public void addCard(Card c){

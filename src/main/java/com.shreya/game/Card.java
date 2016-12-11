@@ -23,7 +23,7 @@ public class Card {
     }
 
     public Card(char suit,int value){
-        if(suit!='s'||suit!='h'||suit!='c'||suit!='d')
+        if(suit!='s'&&suit!='h'&&suit!='c'&&suit!='d')
             throw new IllegalArgumentException("Illegal playing card suit");
         if(value<1 ||value>13)
             throw new IllegalArgumentException("Illegal playing card value");
@@ -34,19 +34,19 @@ public class Card {
     public String toString(){
         String str;
         switch(value){
-            case 1:   str= "Ace";
-            case 2:   str= "2";
-            case 3:   str= "3";
-            case 4:   str= "4";
-            case 5:   str= "5";
-            case 6:   str= "6";
-            case 7:   str= "7";
-            case 8:   str= "8";
-            case 9:   str= "9";
-            case 10:  str= "10";
-            case 11:  str= "Jack";
-            case 12:  str= "Queen";
-            case 13:  str= "King";
+            case 1:   str= "Ace";break;
+            case 2:   str= "2";break;
+            case 3:   str= "3";break;
+            case 4:   str= "4";break;
+            case 5:   str= "5";break;
+            case 6:   str= "6";break;
+            case 7:   str= "7";break;
+            case 8:   str= "8";break;
+            case 9:   str= "9";break;
+            case 10:  str= "10";break;
+            case 11:  str= "Jack";break;
+            case 12:  str= "Queen";break;
+            case 13:  str= "King";break;
             default:  str="joker";
         }
         return str +" of "+suit;

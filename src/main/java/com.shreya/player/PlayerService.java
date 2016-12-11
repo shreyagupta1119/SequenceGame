@@ -37,4 +37,12 @@ public class PlayerService {
     public List<PlayerData> getPlayersByMatchId(int match_id){
         return playerRepository.getPlayersByMatchId(match_id);
     }
+
+    public List<PlayerData> deletePlayerByMatchId(int match_id){
+        return playerRepository.deletePlayerByMatchId(match_id);
+    }
+
+    public PlayerData getPlayerByMatchIdAndContactNumber(int match_id,String number){
+        return playerRepository.getPlayerByMatchIdAndContactNumber(match_id,number);
+    }
 }

@@ -8,7 +8,9 @@ import com.shreya.variables.SequenceVariables;
 import com.shreya.variables.SequenceVariablesService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import javax.jws.soap.SOAPBinding;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -84,7 +86,9 @@ public class GameService {
         return sequenceVariablesService.showDeck(match_id);
     }
 
-    public void match(UserData user1,UserData user2){
+    public void match(String number1, String number2){
+        UserData user1=userService.getUserByContactNumber(number1);
+        UserData user2=userService.getUserByContactNumber(number2);
         int match_id=generateMatchId();
         PlayerData player1=createPlayer(user1,match_id,'g');
         PlayerData player2=createPlayer(user2,match_id,'b');
@@ -96,16 +100,14 @@ public class GameService {
         playerService.updatePlayer(player1);
         playerService.updatePlayer(player2);
         SequenceVariables sv=sequenceVariablesService.createSequenceVariables(match_id);
-        GameboardAndDeck gad=new GameboardAndDeck(new GameBoard(),deck);
-        sv.setGad(gad);
+        sv.setDeck(deck);
         sequenceVariablesService.updateSequenceVariables(sv);
     }
 
     public Integer generateMatchId(){
         List<SequenceVariables> svs=sequenceVariablesService.getAllSequenceVariables();
         Collections.sort(svs,SequenceVariables.match_idComparator);
-        int length=svs.size();
-        int last_match_id=svs.get(length-1).getMatch_id();
+        int last_match_id=svs.get(0).getMatch_id();
         return last_match_id+1;
     }
 
@@ -113,21 +115,19 @@ public class GameService {
         return playerService.createPlayer(user.getContactNumber(),match_id,color);
     }
 
-    public String putCardOnGameBoard(Card c, PlayerData player, int pos){
-        int match_id=player.getMatch_id();
+    public String putCardOnGameBoard(int match_id,String number,Card c, int pos){
         SequenceVariables temp=sequenceVariablesService.getSequenceVariableByMatchId(match_id);
-        GameboardAndDeck gad=temp.getGad();
-        GameBoard gb=temp.getGad().getGb();
-        Deck deck=temp.getGad().getDeck();
+        PlayerData player=playerService.getPlayerByMatchIdAndContactNumber(match_id,number);
+        GameBoard gb=temp.getGb();
+        Deck deck=temp.getDeck();
 
         if(c.getValue()!=11) {
             for (int i:gb.getGameboard().keySet()){
                 if(((gb.getGameboard().get(i).getSuit())==(c.getSuit())) &&
                         (gb.getGameboard().get(i).getValue())==(c.getValue())){
-                    if(gb.getFill().get(i)==null) {
+                    if(gb.getFill().get(i)=='0') {
                         gb.getFill().put(i,player.getColor());
-                        gad.setGb(gb);
-                        temp.setGad(gad);
+                        temp.setGb(gb);
                         sequenceVariablesService.updateSequenceVariables(temp);
                         return "Card is placed on gameboard";
                     }
@@ -139,19 +139,17 @@ public class GameService {
             }
         }
         else if(c.getSuit()=='h' ||c.getSuit()=='s'){
-            if(gb.getFill().get(pos)!=null && !temp.getLockedpos().contains(pos)){
+            if(gb.getFill().get(pos)!='0' && !temp.getLockedpos().contains(pos)){
                 gb.getFill().remove(pos);
-                gad.setGb(gb);
-                temp.setGad(gad);
+                temp.setGb(gb);
                 sequenceVariablesService.updateSequenceVariables(temp);
                 return "Card is removed from position "+pos+" using single eyed jack";
             }
         }
         else {
-            if(gb.getFill().get(pos)==null){
+            if(gb.getFill().get(pos)=='0'){
                 gb.getFill().put(pos,player.getColor());
-                gad.setGb(gb);
-                temp.setGad(gad);
+                temp.setGb(gb);
                 sequenceVariablesService.updateSequenceVariables(temp);
                 return "Card is put on position "+pos +" using double eyed jack";
             }
@@ -162,9 +160,12 @@ public class GameService {
 
     public PlayerData whoseTurnToPlayNext(int match_id){
         List<PlayerData> players=playerService.getPlayersByMatchId(match_id);
-        int curr_counter=sequenceVariablesService.getSequenceVariableByMatchId(match_id).getCounter();
+        SequenceVariables sv=sequenceVariablesService.getSequenceVariableByMatchId(match_id);
+        int curr_counter=sv.getCounter();
         if(gameActive(match_id)){
             ++curr_counter;
+            sv.setCounter(curr_counter);
+            sequenceVariablesService.updateSequenceVariables(sv);
             if(curr_counter%2==0)
                 return players.get(1);
             else
@@ -186,12 +187,10 @@ public class GameService {
         player.removeCard(c);
         int match_id=player.getMatch_id();
         SequenceVariables temp=sequenceVariablesService.getSequenceVariableByMatchId(match_id);
-        GameboardAndDeck gad=temp.getGad();
-        Deck deck=gad.getDeck();
+        Deck deck=temp.getDeck();
         player.addCard(deck.drawFromDeck());
         playerService.updatePlayer(player);
-        gad.setDeck(deck);
-        temp.setGad(gad);
+        temp.setDeck(deck);
         sequenceVariablesService.updateSequenceVariables(temp);
         return "deadcard is replaced with new card";
     }
@@ -199,13 +198,13 @@ public class GameService {
     public PlayerData gameWinner(int match_id){
         List<PlayerData> players=playerService.getPlayersByMatchId(match_id);
         SequenceVariables temp=sequenceVariablesService.getSequenceVariableByMatchId(match_id);
-        GameBoard gb=temp.getGad().getGb();
+        GameBoard gb=temp.getGb();
         ArrayList<Integer> lpos=temp.getLockedpos();
         for(int i=1;i<49;i++){
-            if(gb.getFill().get(i)!=null){
+            if(gb.getFill().get(i)!='0'){
                 char color=gb.getFill().get(i);
                 int count=1;
-                for(int j=i+1;j<i+4;j++){
+                for(int j=i+1;j<i+4 && j<49;j++){
                     if(color==gb.getFill().get(j) &&(j%8!=0||count==3))
                         count++;
                     else{
@@ -223,8 +222,8 @@ public class GameService {
                     }
                 }
 
-                for(int j=i+8;j<i+25;j=j+8){
-                    if(color==gb.getFill().get(j) &&(j<41||count==3))
+                for(int j=i+8;j<i+25 && j<49;j=j+8){
+                    if((color==gb.getFill().get(j)) &&(j<41||count==3))
                         count++;
                     else{
                         count=1;
@@ -241,7 +240,7 @@ public class GameService {
                     }
                 }
 
-                for(int j=i+9;j<i+28;j=j+9){
+                for(int j=i+9;j<i+28 && j<49;j=j+9){
                     if(color==gb.getFill().get(j) &&(j<41||count==3))
                         count++;
                     else{
@@ -259,7 +258,7 @@ public class GameService {
                     }
                 }
 
-                for(int j=i+7;j<i+22;j=j+7){
+                for(int j=i+7;j<i+22 && j<49;j=j+7){
                     if(color==gb.getFill().get(j) &&(j<41||count==3))
                         count++;
                     else{

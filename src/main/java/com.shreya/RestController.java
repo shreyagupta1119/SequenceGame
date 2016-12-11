@@ -1,14 +1,15 @@
 package com.shreya;
 
 import com.shreya.game.Card;
-import com.shreya.game.Deck;
 import com.shreya.game.GameService;
-import com.shreya.game.GameboardAndDeck;
+import com.shreya.game.MoveRequest;
 import com.shreya.player.PlayerData;
 import com.shreya.player.PlayerService;
 import com.shreya.user.LoginRequest;
 import com.shreya.user.UserData;
 import com.shreya.user.UserService;
+import com.shreya.variables.SequenceVariables;
+import com.shreya.variables.SequenceVariablesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,7 @@ public class RestController {
     @Autowired private UserService userService;
     @Autowired private PlayerService playerService;
     @Autowired private GameService gameService;
+    @Autowired private SequenceVariablesService sequenceVariablesService;
 
 
     @RequestMapping(value ="/", method= RequestMethod.GET, produces=APPLICATION_JSON)
@@ -162,6 +164,21 @@ public class RestController {
         return playerService.getPlayersByMatchId(match_id);
     }
 
+    @RequestMapping(value="/player",method = RequestMethod.DELETE,produces={APPLICATION_JSON, APPLICATION_XML})
+    public @ResponseBody RestResponse deletePlayerByMatchId(@RequestParam("match_id") int match_id) {
+        RestResponse response;
+
+        List<PlayerData> players= playerService.deletePlayerByMatchId(match_id);
+
+        if (players != null) {
+            response = new RestResponse(true, "Successfully deleted players: " + players);
+        } else {
+            response = new RestResponse(false, "Failed to delete player with match_id : " + match_id);
+        }
+
+        return response;
+    }
+
     @RequestMapping(value="/newgame", method=RequestMethod.GET)
     public @ResponseBody String newGame(@RequestParam("number") String number){
         userService.getUserByContactNumber(number).setOnline(true);
@@ -207,31 +224,29 @@ public class RestController {
         return response;
     }
 
-/*
-    @RequestMapping(value="/newgame/createRequest",method=RequestMethod.POST,consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
-    public @ResponseBody String createRequest(@RequestParam ("number") String number){
-        return "player "+number+" wants to match with you";
-    }
-
-    @RequestMapping(value="/newgame/receiveRequest",method = RequestMethod.GET)
-    public @ResponseBody String getRequest(@RequestParam ("number") String number){
-
-    }
-*/
     @RequestMapping(value="/showDeck", method=RequestMethod.GET,produces=APPLICATION_JSON)
     public @ResponseBody List<Card> showDeck(@RequestParam ("match_id") int match_id){
         return gameService.showDeck(match_id);
     }
 
     @RequestMapping(value="/match",method=RequestMethod.GET,consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
-    public @ResponseBody String match(@RequestParam("user1") UserData user1,@RequestParam("user2") UserData user2){
-        gameService.match(user1,user2);
+    public @ResponseBody String match(@RequestParam("user1") String number1,@RequestParam("user2") String number2){
+        gameService.match(number1,number2);
         return "Game started";
     }
 
+    @RequestMapping(value="/getSequenceVariablesByMatchId",method = RequestMethod.GET,consumes = {APPLICATION_JSON}, produces={APPLICATION_JSON})
+        public @ResponseBody SequenceVariables getSequenceVariablesByMatchId(@RequestParam("match_id") int match_id){
+         return sequenceVariablesService.getSequenceVariableByMatchId(match_id);
+    }
+
     @RequestMapping(value="/makeMove",method = RequestMethod.POST,consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
-    public @ResponseBody String makeMove(@RequestParam("player") PlayerData player,@RequestParam("card") Card c,@RequestParam ("match_id") int match_id,@RequestParam ("cardposition")int pos) {
-        return gameService.putCardOnGameBoard(c,player,pos);
+    public @ResponseBody String makeMove(@RequestBody MoveRequest moveRequest) {
+        int match_id=moveRequest.getMatch_id();
+        String number=moveRequest.getNumber();
+        Card c=moveRequest.getC();
+        int pos=moveRequest.getPos();
+        return gameService.putCardOnGameBoard(match_id,number,c,pos);
     }
 
     @RequestMapping(value="/deadcardReplacement",method=RequestMethod.GET)
@@ -244,7 +259,7 @@ public class RestController {
         return gameService.whoseTurnToPlayNext(match_id);
     }
 
-    @RequestMapping(value="/TocheckWhoWonGame",method = RequestMethod.GET,consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
+    @RequestMapping(value="/ToCheckWhoWonGame",method = RequestMethod.GET,consumes={APPLICATION_JSON}, produces={APPLICATION_JSON})
     public @ResponseBody PlayerData gameWinner(@RequestParam("match_id") int match_id){
         return gameService.gameWinner(match_id);
     }

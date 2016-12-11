@@ -17,6 +17,7 @@ public class GameBoard {
     private HashMap<Integer, Character> fill;
 
     public GameBoard() {
+        gameboard=new HashMap<Integer, Card>();
         gameboard.put(1, new Card('s', 2));
         gameboard.put(2, new Card('s', 3));
         gameboard.put(3, new Card('s', 4));
@@ -65,7 +66,9 @@ public class GameBoard {
         gameboard.put(46, new Card('d', 4));
         gameboard.put(47, new Card('d', 3));
         gameboard.put(48, new Card('d', 2));
-        fill = null;
+        fill = new HashMap<Integer, Character>();
+        for(int i=1;i<49;i++)
+            fill.put(i,'0');
     }
 
 
@@ -78,14 +81,5 @@ public class GameBoard {
             }
             System.out.println();
         }
-    }
-
-    @Override
-    public String toString() {
-        String str=null;
-        for (Map.Entry<Integer, Character> entry : fill.entrySet()) {
-            str+=("Key = " + entry.getKey() + ", Value = " + entry.getValue());
-        }
-        return str;
     }
 }
