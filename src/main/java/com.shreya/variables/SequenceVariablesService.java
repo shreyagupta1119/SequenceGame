@@ -29,6 +29,10 @@ public class SequenceVariablesService {
         sequenceVariablesRepository.updateSequenceVariables(sv);
     }
 
+    public int generateMatchId(){
+        return sequenceVariablesRepository.generateMatchId();
+    }
+
     public List<SequenceVariables> getAllSequenceVariables(){
         return sequenceVariablesRepository.getAllSequenceVariables();
     }

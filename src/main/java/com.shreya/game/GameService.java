@@ -38,7 +38,7 @@ public class GameService {
 
             else {
                 while (true) {
-                    int i = (int) (Math.random() * (users.size() + 1));
+                    int i = (int) (Math.random() * (users.size()));
                     UserData user = users.get(i);
                     if (!user.getContactNumber().equals( number)) {
                          return user;
@@ -60,7 +60,7 @@ public class GameService {
 
         else {
             while (true) {
-                int i = (int) (Math.random() * (users.size() + 1));
+                int i = (int) (Math.random() * (users.size()));
                 UserData user = users.get(i);
                 if (!user.getContactNumber().equals(number)) {
                      return user;
@@ -104,12 +104,9 @@ public class GameService {
         sequenceVariablesService.updateSequenceVariables(sv);
     }
 
-    public Integer generateMatchId(){
-        List<SequenceVariables> svs=sequenceVariablesService.getAllSequenceVariables();
-        Collections.sort(svs,SequenceVariables.match_idComparator);
-        int last_match_id=svs.get(0).getMatch_id();
-        return last_match_id+1;
-    }
+  public int generateMatchId(){
+     return (sequenceVariablesService.generateMatchId()+1);
+  }
 
     public PlayerData createPlayer(UserData user,int match_id,char color){
         return playerService.createPlayer(user.getContactNumber(),match_id,color);

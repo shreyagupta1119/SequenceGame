@@ -2,12 +2,14 @@ package com.shreya.variables;
 
 import com.shreya.game.Deck;
 import com.shreya.game.GameBoard;
+import com.shreya.player.PlayerData;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by shreya on 8/12/16.
@@ -21,7 +23,6 @@ public class SequenceVariables {
     private Deck deck;
     private ArrayList<Integer> lockedpos;
     private int counter;
-
 
     public SequenceVariables(){
     }

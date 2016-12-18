@@ -17,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -47,23 +48,23 @@ public class RestController {
         return allUsers;
     }
 
-    @RequestMapping(value="/getUserByContactNumber/{contactNumber}",method=RequestMethod.GET,headers="Accept=application/json")
+    @RequestMapping(value="/user/contactnumber/{contactNumber}",method=RequestMethod.GET,headers="Accept=application/json")
     public @ResponseBody UserData getUserByContactNumber(@PathVariable String contactNumber){
         UserData user1=userService.getUserByContactNumber(contactNumber);
         return user1;
     }
 
-    @RequestMapping(value="/getUserByName/{name}",method=RequestMethod.GET,headers="Accept=application/json")
+    @RequestMapping(value="/users/name/{name}",method=RequestMethod.GET,headers="Accept=application/json")
     public @ResponseBody List<UserData> getUserByName(@PathVariable String name){
         return userService.getUserByName(name);
     }
 
-    @RequestMapping(value="/getOnlineUser",method=RequestMethod.GET,headers="Accept=application/json")
+    @RequestMapping(value="/users/online",method=RequestMethod.GET,headers="Accept=application/json")
     public @ResponseBody List<UserData> getOnlineUsers(){
         return userService.getOnlineUsers();
     }
 
-    @RequestMapping(value="/getUserFriendsList",method=RequestMethod.GET,headers="Accept=application/json")
+    @RequestMapping(value="/users/friends",method=RequestMethod.GET,headers="Accept=application/json")
     public @ResponseBody List<UserData> getUserFriendsList(@RequestParam("number") String number){
         return userService.getUserFriendsList(number);
 
@@ -92,13 +93,13 @@ public class RestController {
                                                          @RequestBody UserData user1) {
         RestResponse response;
         UserData myUser=null;
+
         if((StringUtils.isEmpty(user1.getName() )|| (!StringUtils.isEmpty(user1.getName()) && user1.getName().length()>0))
              &&(StringUtils.isEmpty(user1.getPassword() )|| (!StringUtils.isEmpty(user1.getPassword()) && user1.getPassword().length()>0))&&
         (StringUtils.isEmpty(user1.getOnline() )|| (!StringUtils.isEmpty(user1.getOnline()) && (user1.getOnline()==true || user1.getOnline()==false)))
-              && (StringUtils.isEmpty(user1.getFriends())|| (!StringUtils.isEmpty(user1.getFriends()) && userService.checkFriends(user1.getFriends(),number)))
+              && (StringUtils.isEmpty(user1.getFriends())|| (!StringUtils.isEmpty(user1.getFriends()) && userService.checkFriends(user1.getFriends())))
         && (StringUtils.isEmpty(user1.getContactNumber() )|| (!StringUtils.isEmpty(user1.getContactNumber()) && user1.getContactNumber().equals(number)))) {
-            user1.setFriends(userService.setFriends(user1.getFriends(),number));
-            myUser = userService.updateUser(number, user1);
+                     myUser= userService.updateUser(number, user1);
         }
         if (myUser != null) {
              response = new RestResponse(true, "Successfully updated user: " + myUser.toString());
@@ -153,14 +154,14 @@ public class RestController {
         return allPlayers;
     }
 
-    @RequestMapping(value="/getPlayersByContactNumber/{contactNumber}",method=RequestMethod.GET,headers="Accept=application/json")
+    @RequestMapping(value="/player/contactnumber/{contactNumber}",method=RequestMethod.GET,headers="Accept=application/json")
     public @ResponseBody List<PlayerData> getPlayersByContactNumber(@PathVariable String contactNumber){
         List<PlayerData> players=playerService.getPlayersByContactNumber(contactNumber);
         return players;
     }
 
-    @RequestMapping(value="/getPlayerByMatchId",method = RequestMethod.GET,headers = "Accept=application/json")
-    public @ResponseBody List<PlayerData> getPlayersByMatchId(@RequestParam("match_id") int match_id){
+    @RequestMapping(value="/players/matchid/{match_id}",method = RequestMethod.GET,headers = "Accept=application/json")
+    public @ResponseBody List<PlayerData> getPlayersByMatchId(@PathVariable int match_id){
         return playerService.getPlayersByMatchId(match_id);
     }
 
@@ -235,8 +236,8 @@ public class RestController {
         return "Game started";
     }
 
-    @RequestMapping(value="/getSequenceVariablesByMatchId",method = RequestMethod.GET,consumes = {APPLICATION_JSON}, produces={APPLICATION_JSON})
-        public @ResponseBody SequenceVariables getSequenceVariablesByMatchId(@RequestParam("match_id") int match_id){
+    @RequestMapping(value="/sequenceVariables/{match_id}",method = RequestMethod.GET,consumes = {APPLICATION_JSON}, produces={APPLICATION_JSON})
+        public @ResponseBody SequenceVariables getSequenceVariablesByMatchId(@PathVariable int match_id){
          return sequenceVariablesService.getSequenceVariableByMatchId(match_id);
     }
 

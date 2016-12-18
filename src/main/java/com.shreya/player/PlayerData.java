@@ -24,6 +24,8 @@ public class PlayerData {
     @Indexed
     private int match_id;
     @Indexed
+    @Id
+    private ObjectId id;
     private String contactNumber;
     private ArrayList<Card> handCards;
     private char color;

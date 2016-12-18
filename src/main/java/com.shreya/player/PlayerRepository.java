@@ -55,7 +55,7 @@ public class PlayerRepository {
     }
 
     public List<PlayerData> deletePlayerByMatchId(int match_id){
-        List<PlayerData> players=mongoTemplate.find(Query.query(Criteria.where("match_id").is(match_id)), PlayerData.class);
+        List<PlayerData> players= mongoTemplate.find(Query.query(Criteria.where("match_id").is(match_id)),PlayerData.class);
         for(PlayerData player:players)
             mongoTemplate.remove(player);
         return players;
